@@ -1,0 +1,22 @@
+{
+  "name": "@1ecomm/cli",
+  "version": "0.1.0",
+  "description": "Scaffold and run a 1Ecomm storefront. One command from a store ID to a themed, live-connected shop.",
+  "keywords": ["1ecomm", "ecommerce", "headless", "storefront", "cli", "scaffold", "dt-ui"],
+  "license": "SEE LICENSE IN LICENSE.md",
+  "author": "Phessage",
+  "homepage": "https://github.com/phessage/1ecomm-cli#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/phessage/1ecomm-cli.git" },
+  "bugs": { "url": "https://github.com/phessage/1ecomm-cli/issues" },
+  "type": "module",
+  "engines": { "node": ">=20.19" },
+  "bin": { "1ecomm": "./dist/cli.js" },
+  "files": ["dist", "templates", "LICENSE.md"],
+  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/cli.js",
+    "dev": "node --experimental-strip-types src/cli.ts",
+    "test": "node --test test/*.test.js"
+  },
+  "devDependencies": { "@types/node": "^22.10.0", "typescript": "^5.9.2" }
+}

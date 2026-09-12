@@ -1,0 +1,14 @@
+@import 'tailwindcss';
+
+/* dt-ui's semantic tokens and its 24 palettes. The palette and light/dark mode
+   are chosen by the data attributes on <html>, so changing the look is an
+   attribute change rather than a rebuild. */
+@import '@1ecomm/dt-ui-core/theme.css';
+@import '@1ecomm/dt-ui-core/palettes.css';
+
+/* dt-ui components are compiled from source in node_modules, so Tailwind has to
+   be told to scan them or every utility class they use is tree-shaken away. */
+@source '../node_modules/@1ecomm/dt-ui-react/src';
+
+html, body, #root { min-height: 100%; }
+body { background: var(--color-dt-surface); color: var(--color-dt-text); }
