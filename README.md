@@ -104,6 +104,49 @@ Run it in a project that has stopped working:
 It catches the failure the CLI cannot prevent: capabilities revoked *after*
 scaffolding, which produces a runtime error with no obvious cause.
 
+## Tests
+
+```sh
+npm run test        # 40 unit tests, pure logic, no network
+npm run test:e2e    # 99 browser tests against the live platform
+npm run test:all
+```
+
+The end-to-end suite is not a mock. `e2e/global-setup.ts` scaffolds **four real
+projects** through the CLI, installs them from the public npm registry, builds
+them, serves each on its own allocated port, and drives them with Chromium
+against `api.1ecomm.com`. If `@1ecomm/dt-ui-react` cannot install and compile in
+a clean project, setup fails — which is exactly the defect that shipped in
+dt-ui 0.1.0 and that no in-repo gate could see.
+
+The matrix crosses framework, palette and appearance, and every entry answers a
+question no other entry answers:
+
+| entry | covers |
+|---|---|
+| react · indigo · light | the default, and the whole shopper journey |
+| react · ember · dark | a second palette and dark mode |
+| react · jade · light | the same palette as the Vue entry, isolating palette from framework |
+| vue · jade · system | the same journey in another framework, same spec, same testids |
+
+**One spec suite drives every framework.** `journey.spec.ts` contains no
+framework-specific code — it addresses everything through `data-testid`, which
+is why both templates agree on them. Adding a framework costs a template, not a
+second copy of the assertions.
+
+What it covers: the shopper journey, the variant gate, cart persistence across a
+reload, theming actually reaching the paint, capability-gated routes, axe on
+every route, and failure behaviour under injected outages.
+
+### The suite has been watched failing
+
+A gate never seen failing may assert nothing. Every rule above was verified by
+breaking the code and confirming the suite goes red — the variant gate, the
+ID-vs-slug link, the price conversion, the palette, the route gating, and the
+option ordering. The price case is the instructive one: `Intl.NumberFormat`
+coerces a numeric string, so an unconverted price **renders correctly** and the
+browser suite cannot see it. That one is caught by a unit test instead.
+
 ## Licence
 
 1Ecomm Customer Use License 1.0 — see [LICENSE.md](./LICENSE.md).

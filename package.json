@@ -40,11 +40,15 @@
   "scripts": {
     "build": "tsc -p tsconfig.json && chmod +x dist/cli.js",
     "dev": "node --experimental-strip-types src/cli.ts",
-    "test": "node --test test/*.test.js"
+    "test": "npm run build && node --test --experimental-strip-types test/*.test.ts",
+    "test:e2e": "npm run build && playwright test -c e2e/playwright.config.ts",
+    "test:all": "npm run test && npm run test:e2e"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "@playwright/test": "^1.56.0",
+    "@axe-core/playwright": "^4.10.0"
   },
   "exports": {
     ".": "./dist/cli.js",

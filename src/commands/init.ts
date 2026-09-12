@@ -41,7 +41,7 @@ const DT_UI_VERSION = '^0.1.0';
 const FRAMEWORKS: Array<{ value: Framework; label: string; hint: string; ready: boolean }> = [
   { value: 'react', label: 'React', hint: 'Vite, React Router', ready: true },
   { value: 'nextjs', label: 'Next.js', hint: 'App Router, server components', ready: false },
-  { value: 'vue', label: 'Vue', hint: 'Vite, Vue Router', ready: false },
+  { value: 'vue', label: 'Vue', hint: 'Vite, Vue Router', ready: true },
   { value: 'angular', label: 'Angular', hint: 'standalone components, signals', ready: false },
 ];
 
@@ -162,7 +162,10 @@ export async function init(flags: InitFlags): Promise<void> {
     ? (() => {
         const match = FRAMEWORKS.find((f) => f.value === flags.framework);
         if (!match) fail(`Unknown framework "${flags.framework}".`, `Choose one of: ${FRAMEWORKS.map((f) => f.value).join(', ')}.`);
-        if (!match.ready) fail(`The ${match.label} template is not available yet.`, 'React is ready today.');
+        if (!match.ready) {
+          const ready = FRAMEWORKS.filter((f) => f.ready).map((f) => f.value).join(' and ');
+          fail(`The ${match.label} template is not available yet.`, `Ready today: ${ready}.`);
+        }
         return match.value;
       })()
     : await p.select<Framework>({

@@ -32,10 +32,11 @@ export function Product() {
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
 
-  const variantList = variants.status === 'ready' ? variants.value : [];
+  const variantsLoaded = variants.status === 'ready';
+  const variantList = variantsLoaded ? variants.value : [];
   const axes = useMemo(() => toOptionAxes(variantList), [variantList]);
   const selected = findVariant(variantList, chosen);
-  const blocker = addToCartBlocker(variantList, chosen);
+  const blocker = addToCartBlocker(variantList, chosen, variantsLoaded);
 
   if (product.status === 'loading') {
     return <p className="py-24 text-center text-sm text-dt-fg-muted">Loading…</p>;
@@ -49,6 +50,9 @@ export function Product() {
 
   async function onAdd() {
     if (blocker) return;
+    // The button should already have prevented this. It is checked again
+    // because the cost of being wrong is a shopper seeing HTTP 400.
+    if (variantList.length > 0 && !selected) return;
     setAdding(true);
     setAddError(null);
     try {

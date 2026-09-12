@@ -161,7 +161,19 @@ export function findVariant(
 export function addToCartBlocker(
   variants: Variant[],
   chosen: Record<string, string>,
+  /**
+   * Whether the variant list has actually been loaded.
+   *
+   * This argument exists because of a real defect: while variants were still in
+   * flight the list was empty, an empty list means "no options to choose", and
+   * so the button rendered as a working "Add to bag" for a product that in fact
+   * required a variant. A shopper quick enough to press it got HTTP 400 and a
+   * message naming nothing. "Not yet known" and "known to be none" are
+   * different answers and must not share a representation.
+   */
+  variantsLoaded = true,
 ): string | undefined {
+  if (!variantsLoaded) return 'Loading options';
   if (variants.length === 0) return undefined;
 
   const axes = toOptionAxes(variants);

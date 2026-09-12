@@ -1,0 +1,64 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# One run per branch. Two pushes in quick succession put two runs on the same
+# box, and the second fails on a port that the first is still holding — a
+# result about the machine rather than the code.
+concurrency:
+  group: 1ecomm-cli-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: [self-hosted, lenovo-ws3]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      # Pure logic, no network. Fast enough to be the first thing that fails.
+      - run: npm run test
+
+  e2e:
+    needs: unit
+    runs-on: [self-hosted, lenovo-ws3]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      # No --with-deps: that needs root, which a self-hosted runner should not
+      # be handing out. If the system libraries are missing the launch fails
+      # loudly rather than being papered over here.
+      - run: npx playwright install chromium
+
+      # This suite scaffolds four real projects, installs them from the public
+      # registry, builds them and drives them against the LIVE platform. It has
+      # no offline mode and does not pretend to: a missing prerequisite throws
+      # in global-setup rather than skipping, because a skipped suite exits zero
+      # and reports green having proved nothing.
+      - run: npm run test:e2e
+        env:
+          CI: 'true'
+          # Point at a leased fixture store instead of the shared demo one by
+          # setting these as repository variables.
+          E2E_STORE_ID: ${{ vars.E2E_STORE_ID }}
+          E2E_BOOTSTRAP_URL: ${{ vars.E2E_BOOTSTRAP_URL }}
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            1ecomm-cli/playwright-report
+            1ecomm-cli/test-results
+          retention-days: 7
