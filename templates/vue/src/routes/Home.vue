@@ -3,7 +3,8 @@ import { DtProductList, DtIncentives, DtFaq, DtNewsletter } from '@1ecomm/dt-ui-
 import { useRouter } from 'vue-router';
 import { client } from '../store';
 import { useAsync } from '../lib/useAsync';
-import { toDtProducts, categoryToDtProduct } from '../lib/adapt';
+import { toDtProducts } from '../lib/adapt';
+import CategoryTiles from '../components/CategoryTiles.vue';
 import { STORE_NAME } from '../config';
 
 const router = useRouter();
@@ -36,13 +37,11 @@ const categories = useAsync(() => client().listCategories());
   </section>
 
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div v-if="categories.status.value === 'ready' && (categories.value.value?.length ?? 0) > 0" data-testid="home-categories">
-      <DtProductList
-        template="tall-images"
-        heading="Shop by category"
-        :products="(categories.value.value ?? []).slice(0, 4).map(categoryToDtProduct)"
-      />
-    </div>
+    <CategoryTiles
+      v-if="categories.status.value === 'ready'"
+      heading="Shop by category"
+      :categories="(categories.value.value ?? []).slice(0, 4)"
+    />
 
     <div
       v-if="products.status.value === 'failed'"

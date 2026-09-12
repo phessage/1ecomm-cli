@@ -38,6 +38,9 @@ import * as p from '../lib/prompt.js';
 /** dt-ui version the generated project depends on. */
 const DT_UI_VERSION = '^0.1.0';
 
+/** What `-y` picks when no framework is named. */
+const DEFAULT_FRAMEWORK: Framework = 'react';
+
 const FRAMEWORKS: Array<{ value: Framework; label: string; hint: string; ready: boolean }> = [
   { value: 'react', label: 'React', hint: 'Vite, React Router', ready: true },
   { value: 'nextjs', label: 'Next.js', hint: 'App Router, server components', ready: false },
@@ -110,7 +113,60 @@ async function resolveStore(flags: InitFlags): Promise<StoreConfig> {
   }
 }
 
+const PACKAGE_MANAGERS: PackageManager[] = ['npm', 'pnpm', 'yarn', 'bun'];
+
+/**
+ * Check every flag the caller supplied, before anything is asked or written.
+ *
+ * Validating late means a developer answers four questions and validates a
+ * store against the network before being told they mistyped `--palette`. These
+ * are all pure checks against values the CLI already knows, so there is no
+ * reason to defer them.
+ */
+function validateFlags(flags: InitFlags): void {
+  if (flags.framework) {
+    const match = FRAMEWORKS.find((f) => f.value === flags.framework);
+    if (!match) {
+      fail(
+        `Unknown framework "${flags.framework}".`,
+        `Choose one of: ${FRAMEWORKS.map((f) => f.value).join(', ')}.`,
+      );
+    }
+    if (!match.ready) {
+      const ready = FRAMEWORKS.filter((f) => f.ready).map((f) => f.value).join(' and ');
+      fail(`The ${match.label} template is not available yet.`, `Ready today: ${ready}.`);
+    }
+  }
+
+  if (flags.palette && !isPalette(flags.palette)) {
+    fail(
+      `Unknown palette "${flags.palette}".`,
+      `Choose one of: ${PALETTES.map((x) => x.name).join(', ')}.`,
+    );
+  }
+
+  if (flags.appearance && !APPEARANCES.includes(flags.appearance as Appearance)) {
+    fail(`Unknown appearance "${flags.appearance}".`, 'Choose light, dark or system.');
+  }
+
+  if (flags.packageManager && !PACKAGE_MANAGERS.includes(flags.packageManager as PackageManager)) {
+    fail(
+      `Unknown package manager "${flags.packageManager}".`,
+      `Choose one of: ${PACKAGE_MANAGERS.join(', ')}.`,
+    );
+  }
+
+  if (flags.bootstrapUrl) {
+    try {
+      new URL(flags.bootstrapUrl);
+    } catch {
+      fail(`"${flags.bootstrapUrl}" is not a URL.`, 'For example: --bootstrap-url https://api.1ecomm.com');
+    }
+  }
+}
+
 export async function init(flags: InitFlags): Promise<void> {
+  validateFlags(flags);
   p.intro('Create a 1Ecomm storefront');
 
   // ---- 1. the store, before anything else --------------------------------
@@ -159,16 +215,13 @@ export async function init(flags: InitFlags): Promise<void> {
 
   // ---- 3. framework -------------------------------------------------------
   const framework: Framework = flags.framework
-    ? (() => {
-        const match = FRAMEWORKS.find((f) => f.value === flags.framework);
-        if (!match) fail(`Unknown framework "${flags.framework}".`, `Choose one of: ${FRAMEWORKS.map((f) => f.value).join(', ')}.`);
-        if (!match.ready) {
-          const ready = FRAMEWORKS.filter((f) => f.ready).map((f) => f.value).join(' and ');
-          fail(`The ${match.label} template is not available yet.`, `Ready today: ${ready}.`);
-        }
-        return match.value;
-      })()
-    : await p.select<Framework>({
+    ? (flags.framework as Framework)
+    : // `-y` means "accept sensible defaults for everything not given", and it
+      // has to include the framework or the flag is a half-promise that still
+      // blocks in CI.
+      flags.yes
+      ? DEFAULT_FRAMEWORK
+      : await p.select<Framework>({
         message: 'Framework',
         choices: FRAMEWORKS.map((f) => ({
           value: f.value,
@@ -179,9 +232,7 @@ export async function init(flags: InitFlags): Promise<void> {
 
   // ---- 4. look ------------------------------------------------------------
   const palette = flags.palette
-    ? isPalette(flags.palette)
-      ? flags.palette
-      : fail(`Unknown palette "${flags.palette}".`, `Choose one of: ${PALETTES.map((x) => x.name).join(', ')}.`)
+    ? flags.palette
     : flags.yes
       ? DEFAULT_PALETTE
       : await p.select<string>({
@@ -191,8 +242,7 @@ export async function init(flags: InitFlags): Promise<void> {
         });
 
   const appearance: Appearance = flags.appearance
-    ? (APPEARANCES.find((a) => a === flags.appearance) ??
-        fail(`Unknown appearance "${flags.appearance}".`, 'Choose light, dark or system.'))
+    ? (flags.appearance as Appearance)
     : flags.yes
       ? 'system'
       : await p.select<Appearance>({

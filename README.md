@@ -107,10 +107,13 @@ scaffolding, which produces a runtime error with no obvious cause.
 ## Tests
 
 ```sh
-npm run test        # 40 unit tests, pure logic, no network
-npm run test:e2e    # 99 browser tests against the live platform
+npm run test        # 62 unit tests — scaffolder, platform client, adapter, and the CLI as a process
+npm run test:e2e    # 211 browser tests against the live platform
 npm run test:all
 ```
+
+A full guide with screenshots of every prompt and the storefronts it generates:
+<https://claude.ai/code/artifact/4849bd08-64ec-41fc-9cdc-813cbdc0a6b2>
 
 The end-to-end suite is not a mock. `e2e/global-setup.ts` scaffolds **four real
 projects** through the CLI, installs them from the public npm registry, builds
@@ -134,9 +137,16 @@ framework-specific code — it addresses everything through `data-testid`, which
 is why both templates agree on them. Adding a framework costs a template, not a
 second copy of the assertions.
 
-What it covers: the shopper journey, the variant gate, cart persistence across a
-reload, theming actually reaching the paint, capability-gated routes, axe on
-every route, and failure behaviour under injected outages.
+What it covers: the shopper journey, the variant gate, checkout preparation
+driven by the platform's own country rules, cart mutations and session
+isolation, deep links and browser history, phone width and touch targets,
+keyboard operation, theming actually reaching the paint, capability-gated
+routes, axe on every route, and failure behaviour under injected outages.
+
+The CLI itself is tested as a **process**, not only as functions: help, version,
+every refusal, every flag reaching the generated project, and `doctor` against
+healthy and broken projects — with exit codes asserted throughout, because a CLI
+that prints an error and exits zero cannot be used in a script.
 
 ### The suite has been watched failing
 

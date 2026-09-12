@@ -150,6 +150,18 @@ function renderList<T>(
   });
 }
 
+/**
+ * Whether a keypress means "accept".
+ *
+ * Node reports `\r` as `return` and `\n` as `enter`, and which one arrives
+ * depends on the terminal. Matching only one leaves the prompt unanswerable for
+ * anybody whose terminal sends the other — found by driving the CLI through a
+ * pty, where it hung on a list it could not be told to accept.
+ */
+function isSubmit(key: readline.Key): boolean {
+  return key.name === 'return' || key.name === 'enter';
+}
+
 function withRawKeys<T>(
   handler: (key: readline.Key, done: (value: T) => void, fail: (e: Error) => void) => void,
 ): Promise<T> {
@@ -202,7 +214,7 @@ export async function select<T>(opts: {
   return withRawKeys<T>((key, done) => {
     if (key.name === 'up' || key.name === 'k') move(-1);
     else if (key.name === 'down' || key.name === 'j') move(1);
-    else if (key.name === 'return') {
+    else if (isSubmit(key)) {
       stdout.write('\n');
       return done(choices[cursor]!.value);
     } else return;
@@ -243,7 +255,7 @@ export async function multiselect<T>(opts: {
     } else if (key.name === 'a') {
       if (selected.size === selectable.length) selected.clear();
       else selectable.forEach((i) => selected.add(i));
-    } else if (key.name === 'return') {
+    } else if (isSubmit(key)) {
       if (selected.size === 0 && !opts.allowEmpty) {
         renderList(opts.message, choices, cursor, selected, false);
         stdout.write(`${symbol.bar}  ${c.red('Choose at least one, or press a to select all.')}\n`);

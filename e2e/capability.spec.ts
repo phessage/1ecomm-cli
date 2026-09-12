@@ -5,14 +5,7 @@
  * reachable and always fails, which is worse than no page. These tests read the
  * store's live capability list and assert the generated project agrees with it.
  */
-import { test, expect, open, addAnythingToCart, findProductWithOptions, chooseAvailableCombination } from './fixtures.js';
-import { STORE_ID, BOOTSTRAP_URL } from './matrix.js';
-
-async function capabilities(): Promise<string[]> {
-  const res = await fetch(`${BOOTSTRAP_URL}/v1/headless/stores/${STORE_ID}/config`);
-  const body = (await res.json()) as { data: { capabilities: string[] } };
-  return body.data.capabilities;
-}
+import { test, expect, open, addAnythingToCart, capabilities } from './fixtures.js';
 
 test('the checkout link appears only when the store can prepare a checkout', async ({ page, project }) => {
   const caps = await capabilities();

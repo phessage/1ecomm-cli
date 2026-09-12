@@ -72,19 +72,23 @@ export function Cart() {
       <h1 className="text-2xl font-semibold tracking-tight text-dt-fg">Your bag</h1>
 
       <div className="mt-8" aria-busy={busy}>
+        {/*
+          `editable` is deliberately OFF. It renders dt-ui's own per-line
+          quantity <select>, and that select emits nothing and issues no
+          request — verified in a browser: changing it leaves the cart
+          untouched. A control that looks like it worked and did not is worse
+          than no control, so the quantity and remove actions below are the
+          project's own, and they talk to the platform.
+        */}
         <DtOrderSummary
           template="card"
           title="Order summary"
           lines={toLines(cart)}
           totals={toTotals(cart)}
-          editable
-          onLineRemoved={(line) => void mutate(() => removeItem(line.id))}
         />
       </div>
 
-      {/* Quantity controls sit outside the summary: dt-order-summary reports a
-          removal but does not own quantity, and the cart is the thing that
-          knows how to talk to the platform. */}
+      {/* The working controls. */}
       <ul className="mt-6 space-y-2">
         {cart.items.map((item) => (
           <li key={item.id} className="flex items-center justify-between gap-4 text-sm">
@@ -112,6 +116,16 @@ export function Cart() {
                 className="rounded-dt-control border border-dt-border px-2 py-1 disabled:opacity-40"
               >
                 +
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                aria-label={`Remove ${item.name}`}
+                data-testid={`cart-remove-${item.id}`}
+                onClick={() => void mutate(() => removeItem(item.id))}
+                className="ml-2 rounded-dt-control px-2 py-1 text-dt-fg-muted hover:text-dt-danger disabled:opacity-40"
+              >
+                Remove
               </button>
             </span>
           </li>

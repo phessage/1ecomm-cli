@@ -215,3 +215,17 @@ export async function addAnythingToCart(page: Page, baseURL: string): Promise<vo
   await page.waitForURL('**/cart');
   await page.locator('[data-testid="cart"]').waitFor();
 }
+
+/**
+ * The store's live capability list.
+ *
+ * Read from the platform on every call rather than baked into the matrix: a
+ * capability can be revoked while the suite is running, and a test that asserts
+ * against a stale list fails on the wrong thing.
+ */
+export async function capabilities(): Promise<string[]> {
+  const res = await fetch(`${BOOTSTRAP_URL}/v1/headless/stores/${STORE_ID}/config`);
+  if (!res.ok) throw new Error(`Store bootstrap failed with HTTP ${res.status}`);
+  const body = (await res.json()) as { data: { capabilities?: string[] } };
+  return body.data.capabilities ?? [];
+}

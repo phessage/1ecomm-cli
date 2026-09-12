@@ -2,8 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import { DtProductList, DtIncentives, DtFaq, DtNewsletter } from '@1ecomm/dt-ui-react';
 import { useStore } from '../store';
 import { useAsync } from '../lib/useAsync';
-import { toDtProducts, categoryToDtProduct } from '../lib/adapt';
+import { toDtProducts } from '../lib/adapt';
 import { ErrorNote, STORE_NAME } from '../components/Shell';
+import { CategoryTiles } from '../components/CategoryTiles';
 
 /**
  * The hero.
@@ -50,14 +51,8 @@ export function Home() {
       <Hero />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {categories.status === 'ready' && categories.value.length > 0 ? (
-          <div data-testid="home-categories">
-            <DtProductList
-              template="tall-images"
-              heading="Shop by category"
-              products={categories.value.slice(0, 4).map(categoryToDtProduct)}
-            />
-          </div>
+        {categories.status === 'ready' ? (
+          <CategoryTiles heading="Shop by category" categories={categories.value.slice(0, 4)} />
         ) : null}
 
         {products.status === 'failed' ? (

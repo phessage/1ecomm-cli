@@ -16,7 +16,7 @@
  * with the parse failure made explicit rather than becoming NaN downstream.
  */
 import type { DtImage, DtMoney, DtProduct } from '@1ecomm/dt-ui-core';
-import type { Category, Money, Product, Variant } from './commerce';
+import type { Money, Product, Variant } from './commerce';
 
 /** A product image the shopper's browser can actually decode, or a placeholder. */
 const PLACEHOLDER_IMAGE =
@@ -65,18 +65,6 @@ export function toDtProduct(product: Product): DtProduct {
 
 export function toDtProducts(products: Product[]): DtProduct[] {
   return products.map(toDtProduct);
-}
-
-/** Category tiles reuse the product card contract, with the price suppressed. */
-export function categoryToDtProduct(category: Category): DtProduct {
-  return {
-    id: category.id,
-    name: category.name,
-    href: `/category/${category.slug || category.id}`,
-    image: toImage(category.imageUrl, category.name),
-    price: { amount: 0, currency: 'USD', formatted: '' },
-    ...(category.description ? { description: category.description } : {}),
-  };
 }
 
 /**

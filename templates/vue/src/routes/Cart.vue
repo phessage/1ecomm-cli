@@ -67,19 +67,17 @@ async function mutate(work: () => Promise<void>) {
     <h1 class="text-2xl font-semibold tracking-tight text-dt-fg">Your bag</h1>
 
     <div class="mt-8" :aria-busy="busy">
-      <DtOrderSummary
-        template="card"
-        title="Order summary"
-        :lines="lines"
-        :totals="totals"
-        editable
-        @line-removed="(line) => mutate(() => removeItem(line.id))"
-      />
+      <!--
+        `editable` is deliberately OFF. It renders dt-ui's own per-line quantity
+        <select>, and that select emits nothing and issues no request — verified
+        in a browser: changing it leaves the cart untouched. A control that looks
+        like it worked and did not is worse than no control, so the quantity and
+        remove actions below are the project's own, and they talk to the platform.
+      -->
+      <DtOrderSummary template="card" title="Order summary" :lines="lines" :totals="totals" />
     </div>
 
-    <!-- Quantity controls sit outside the summary: dt-order-summary reports a
-         removal but does not own quantity, and the cart is the thing that knows
-         how to talk to the platform. -->
+    <!-- The working controls. -->
     <ul class="mt-6 space-y-2">
       <li
         v-for="item in cart.items"
@@ -110,6 +108,16 @@ async function mutate(work: () => Promise<void>) {
             @click="mutate(() => updateItem(item.id, item.quantity + 1))"
           >
             +
+          </button>
+          <button
+            type="button"
+            :disabled="busy"
+            :aria-label="`Remove ${item.name}`"
+            :data-testid="`cart-remove-${item.id}`"
+            class="ml-2 rounded-dt-control px-2 py-1 text-dt-fg-muted hover:text-dt-danger disabled:opacity-40"
+            @click="mutate(() => removeItem(item.id))"
+          >
+            Remove
           </button>
         </span>
       </li>
