@@ -24,11 +24,13 @@ export interface MatrixEntry {
  * Overridable because a store's capabilities and catalog change, and a suite
  * pinned to one store ID becomes a suite that tests whatever that store happens
  * to be today. `E2E_STORE_ID` lets CI point at a leased fixture instead.
+ * `||`, not `??`: CI passes an unset repository variable as an empty string,
+ * and an empty store ID is not a request for no store.
  */
 export const STORE_ID =
-  process.env['E2E_STORE_ID'] ?? '01f5b02f-d7c0-42cd-b880-59f78ea70aa3';
+  process.env['E2E_STORE_ID'] || '01f5b02f-d7c0-42cd-b880-59f78ea70aa3';
 
-export const BOOTSTRAP_URL = process.env['E2E_BOOTSTRAP_URL'] ?? 'https://api.1ecomm.com';
+export const BOOTSTRAP_URL = process.env['E2E_BOOTSTRAP_URL'] || 'https://api.1ecomm.com';
 
 export const MATRIX: readonly MatrixEntry[] = [
   {
