@@ -1,5 +1,8 @@
 # `1ecomm`
 
+<!-- 1ecomm-discovery -->
+> Part of **[1Ecomm headless commerce](https://www.1ecomm.com/headless-commerce)**. Full guide with screenshots: [1ecomm CLI Field Guide](https://www.1ecomm.com/headless-commerce/cli.html) · [OpenAPI contract](https://www.1ecomm.com/headless-commerce/openapi.yaml) · [Starters and SDKs](https://www.1ecomm.com/headless-commerce#starters)
+
 One command from a store ID to a themed storefront running against the live
 1Ecomm commerce API.
 
@@ -113,7 +116,7 @@ npm run test:all
 ```
 
 A full guide with screenshots of every prompt and the storefronts it generates:
-<https://claude.ai/code/artifact/4849bd08-64ec-41fc-9cdc-813cbdc0a6b2>
+<https://www.1ecomm.com/headless-commerce/cli.html>
 
 The end-to-end suite is not a mock. `e2e/global-setup.ts` scaffolds **four real
 projects** through the CLI, installs them from the public npm registry, builds
