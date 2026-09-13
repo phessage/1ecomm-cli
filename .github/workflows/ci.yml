@@ -6,16 +6,14 @@ on:
   pull_request:
   workflow_dispatch:
 
-# One run per branch. Two pushes in quick succession put two runs on the same
-# box, and the second fails on a port that the first is still holding — a
-# result about the machine rather than the code.
+# One run per branch: a newer push supersedes the run it replaces.
 concurrency:
   group: 1ecomm-cli-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   unit:
-    runs-on: [self-hosted, lenovo-ws3]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -28,7 +26,7 @@ jobs:
 
   e2e:
     needs: unit
-    runs-on: [self-hosted, lenovo-ws3]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -36,10 +34,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      # No --with-deps: that needs root, which a self-hosted runner should not
-      # be handing out. If the system libraries are missing the launch fails
-      # loudly rather than being papered over here.
-      - run: npx playwright install chromium
+      # Hosted runners grant root, so the browser's system libraries come too.
+      - run: npx playwright install --with-deps chromium
 
       # This suite scaffolds four real projects, installs them from the public
       # registry, builds them and drives them against the LIVE platform. It has
@@ -59,6 +55,6 @@ jobs:
         with:
           name: playwright-report
           path: |
-            1ecomm-cli/playwright-report
-            1ecomm-cli/test-results
+            playwright-report
+            test-results
           retention-days: 7
