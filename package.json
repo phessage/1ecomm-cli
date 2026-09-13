@@ -9,11 +9,16 @@
     "storefront",
     "cli",
     "scaffold",
-    "dt-ui"
+    "dt-ui",
+    "headless-commerce",
+    "react",
+    "vue",
+    "create-app",
+    "starter"
   ],
   "license": "SEE LICENSE IN LICENSE.md",
   "author": "Phessage",
-  "homepage": "https://github.com/phessage/1ecomm-cli#readme",
+  "homepage": "https://www.1ecomm.com/headless-commerce/cli.html",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/phessage/1ecomm-cli.git"
