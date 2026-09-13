@@ -2,15 +2,45 @@
   "name": "@1ecomm/create-storefront",
   "version": "0.1.0",
   "description": "npm create @1ecomm/storefront — scaffold a 1Ecomm storefront.",
-  "keywords": ["1ecomm", "storefront", "create", "scaffold", "ecommerce", "headless"],
+  "keywords": [
+    "1ecomm",
+    "storefront",
+    "create",
+    "scaffold",
+    "ecommerce",
+    "headless",
+    "headless-commerce",
+    "react",
+    "vue",
+    "create-app"
+  ],
   "license": "SEE LICENSE IN LICENSE.md",
   "author": "Phessage",
-  "homepage": "https://github.com/phessage/1ecomm-cli#readme",
-  "repository": { "type": "git", "url": "git+https://github.com/phessage/1ecomm-cli.git", "directory": "create-storefront" },
+  "homepage": "https://www.1ecomm.com/headless-commerce/cli.html",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phessage/1ecomm-cli.git",
+    "directory": "create-storefront"
+  },
   "type": "module",
-  "engines": { "node": ">=20.19" },
-  "bin": { "create-storefront": "./index.js" },
-  "files": ["index.js", "LICENSE.md"],
-  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
-  "dependencies": { "@1ecomm/cli": "^0.1.0" }
+  "engines": {
+    "node": ">=20.19"
+  },
+  "bin": {
+    "create-storefront": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "LICENSE.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@1ecomm/cli": "^0.1.0"
+  },
+  "bugs": {
+    "url": "https://github.com/phessage/1ecomm-cli/issues"
+  }
 }
