@@ -149,11 +149,6 @@ export async function findSimpleProduct(): Promise<{ href: string; id: string } 
 export async function chooseAvailableCombination(page: Page, productId: string): Promise<void> {
   const button = page.locator('[data-testid="pdp-add-to-cart"]');
 
-  // Wait out the variant load before deciding anything. Counting fieldsets
-  // first would read zero while the options are still in flight, and "no
-  // options" and "options not known yet" lead to opposite conclusions.
-  await expect(button).not.toHaveText(/loading options/i);
-
   const variants = await fetchVariants(productId);
   const available = variants.filter((variant) => variant.available);
   const apiAxes = new Set(variants.flatMap((v) => Object.keys(v.selectedOptions ?? {})));
@@ -164,16 +159,21 @@ export async function chooseAvailableCombination(page: Page, productId: string):
     );
   }
 
-  const axes = await page.locator('fieldset').count();
-  if (axes === 0) {
-    if (apiAxes.size > 0) {
-      throw new Error(
-        `The page rendered no option axes, but the API reports ${apiAxes.size} ` +
-          `(${[...apiAxes].join(', ')}) for ${productId}. Button reads "${await button.innerText()}".`,
-      );
-    }
+  // Wait for the state the API predicts, not for a loading label to go away.
+  // The page passes through more than one loading state, so "not loading
+  // options" can be true in the gap before the option load has even started,
+  // and counting fieldsets there reads zero for a product that has options.
+  if (apiAxes.size === 0) {
     await expect(button).toBeEnabled();
     return;
+  }
+  try {
+    await expect(page.locator('fieldset').first()).toBeVisible({ timeout: 15_000 });
+  } catch {
+    throw new Error(
+      `The page rendered no option axes, but the API reports ${apiAxes.size} ` +
+        `(${[...apiAxes].join(', ')}) for ${productId}. Button reads "${await button.innerText()}".`,
+    );
   }
 
   // Try each in-stock variant in turn. The first is usually fine, but a
