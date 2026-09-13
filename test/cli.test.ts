@@ -20,7 +20,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const CLI = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist', 'cli.js');
-const STORE_ID = process.env['E2E_STORE_ID'] ?? '01f5b02f-d7c0-42cd-b880-59f78ea70aa3';
+const STORE_ID = process.env['E2E_STORE_ID'] || '01f5b02f-d7c0-42cd-b880-59f78ea70aa3';
 const UNPROVISIONED = '00000000-0000-0000-0000-000000000000';
 
 interface Result {
