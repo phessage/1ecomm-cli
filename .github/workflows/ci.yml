@@ -1,9 +1,12 @@
 name: ci
 
 on:
+  # Public repository on the organisation's self-hosted runners. Pull requests
+  # (including any from forks) never trigger a run: CI runs only for pushes to
+  # main, release tags and manual dispatch by a maintainer.
   push:
     branches: [main]
-  pull_request:
+    tags: ['v*']
   workflow_dispatch:
 
 # One run per branch: a newer push supersedes the run it replaces.
@@ -13,7 +16,7 @@ concurrency:
 
 jobs:
   unit:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -26,7 +29,7 @@ jobs:
 
   e2e:
     needs: unit
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -34,8 +37,9 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      # Hosted runners grant root, so the browser's system libraries come too.
-      - run: npx playwright install --with-deps chromium
+      # Self-hosted runners have no passwordless sudo; the browser's system
+      # libraries are preinstalled on the runner hosts.
+      - run: npx playwright install chromium
 
       # This suite scaffolds four real projects, installs them from the public
       # registry, builds them and drives them against the LIVE platform. It has
