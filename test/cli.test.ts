@@ -18,6 +18,7 @@ import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createServer } from 'node:http';
 
 const CLI = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist', 'cli.js');
 const STORE_ID = process.env['E2E_STORE_ID'] || '01f5b02f-d7c0-42cd-b880-59f78ea70aa3';
@@ -291,7 +292,7 @@ describe('init writes what it was asked for', () => {
 });
 
 describe('doctor', () => {
-  test('reports green on a healthy project and exits 0', async () => {
+  test('developer-platform.headless-api.bootstrap::doctor-healthy-project reports green and exits 0', async () => {
     const dir = join(workspace, 'healthy');
     await run(['init', dir, '--store-id', STORE_ID, '-y', '--no-install'], workspace);
 
@@ -303,13 +304,13 @@ describe('doctor', () => {
     assert.match(result.stdout, /catalog read/);
   });
 
-  test('fails with a reason where there is no project', async () => {
+  test('developer-platform.headless-api.bootstrap::doctor-missing-config fails with a reason', async () => {
     const result = await run(['doctor', workspace], workspace);
     assert.equal(result.code, 1);
     assert.match(result.all, /No headless-config\.json/);
   });
 
-  test('fails when the store stops resolving, and says what to check', async () => {
+  test('developer-platform.headless-api.bootstrap::doctor-bootstrap-failure says what to check', async () => {
     const dir = join(workspace, 'broken');
     await run(['init', dir, '--store-id', STORE_ID, '-y', '--no-install'], workspace);
     await writeFile(
@@ -323,7 +324,7 @@ describe('doctor', () => {
     assert.match(result.all, /ACTIVE application/i);
   });
 
-  test('warns rather than fails when the store id is not a uuid', async () => {
+  test('developer-platform.headless-api.bootstrap::doctor-malformed-store-id warns before bootstrap fails', async () => {
     const dir = join(workspace, 'malformed');
     await run(['init', dir, '--store-id', STORE_ID, '-y', '--no-install'], workspace);
     await writeFile(
@@ -336,10 +337,55 @@ describe('doctor', () => {
     assert.match(result.all, /not a UUID/i, 'but the shape problem is named first');
   });
 
-  test('run with no argument, it checks the current directory', async () => {
+  test('developer-platform.headless-api.bootstrap::doctor-defaults-to-current-directory', async () => {
     const dir = join(workspace, 'cwd-check');
     await run(['init', dir, '--store-id', STORE_ID, '-y', '--no-install'], workspace);
     const result = await run(['doctor'], dir);
     assert.equal(result.code, 0, result.all);
+  });
+
+  test('developer-platform.headless-api.bootstrap::doctor-warning-only-exits-zero', async () => {
+    const dir = join(workspace, 'empty-catalog');
+    await mkdir(dir, { recursive: true });
+
+    const server = createServer((request, response) => {
+      response.setHeader('content-type', 'application/json');
+      if (request.url === `/v1/headless/stores/${STORE_ID}/config`) {
+        response.end(JSON.stringify({
+          data: {
+            storeId: STORE_ID,
+            apiUrl: `http://127.0.0.1:${(server.address() as import('node:net').AddressInfo).port}`,
+            publishableKey: 'pk_public_doctor-test',
+            apiVersion: 'v1',
+            capabilities: ['catalog'],
+          },
+        }));
+        return;
+      }
+      if (request.url === '/v1/headless/products?limit=1') {
+        response.end(JSON.stringify({ data: [] }));
+        return;
+      }
+      response.statusCode = 404;
+      response.end(JSON.stringify({ detail: 'Not found' }));
+    });
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const address = server.address() as import('node:net').AddressInfo;
+    const bootstrapUrl = `http://127.0.0.1:${address.port}`;
+    await writeFile(
+      join(dir, 'headless-config.json'),
+      JSON.stringify({ storeId: STORE_ID, bootstrapUrl }),
+    );
+
+    try {
+      const result = await run(['doctor', dir], workspace);
+      assert.equal(result.code, 0, result.all);
+      assert.match(result.stdout, /catalog read \(0 products returned\)/);
+      assert.match(result.stdout, /Usable, with the warnings above/);
+    } finally {
+      await new Promise<void>((resolve, reject) =>
+        server.close((error) => (error ? reject(error) : resolve())),
+      );
+    }
   });
 });
