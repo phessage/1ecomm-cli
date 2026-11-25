@@ -344,7 +344,7 @@ describe('doctor', () => {
     assert.equal(result.code, 0, result.all);
   });
 
-  test('developer-platform.headless-api.bootstrap::doctor-warning-only-exits-zero', async () => {
+  test('developer-platform.headless-api.bootstrap::doctor-warning-only-exits-zero — an empty catalog is a warning, not a command failure @release', async () => {
     const dir = join(workspace, 'empty-catalog');
     await mkdir(dir, { recursive: true });
 
