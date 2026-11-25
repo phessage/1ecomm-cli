@@ -71,7 +71,7 @@ async function addFromPdp(page: Page, baseURL: string, target: { id: string; hre
   return added;
 }
 
-test('developer-platform.headless-api.bootstrap::cli-scaffold-builds — the scaffolded and built starter is configured with the store id it was created for', async ({ page, project }) => {
+test('developer-platform.headless-api.bootstrap::cli-scaffold-builds — the scaffolded and built starter is configured with the store id it was created for @release', async ({ page, project }) => {
   const config = JSON.parse(await readFile(join(project.directory, 'headless-config.json'), 'utf8')) as { storeId: string };
   expect(config.storeId, 'headless-config.json carries the --store-id').toBe(STORE_ID);
   await expect(readFile(join(project.directory, 'dist', 'index.html'), 'utf8')).resolves.toContain('<');
@@ -86,7 +86,7 @@ test('developer-platform.headless-api.bootstrap::cli-scaffold-builds — the sca
   await expect(page.locator('[data-testid="store-unavailable"]')).toHaveCount(0);
 });
 
-test('developer-platform.headless-api.catalog::starter-renders-live-catalog — home, product, category filter and the variant gate render what the catalog API returned @smoke', async ({ page, project, consoleErrors }) => {
+test('developer-platform.headless-api.catalog::starter-renders-live-catalog — home, product, category filter and the variant gate render what the catalog API returned @smoke @release', async ({ page, project, consoleErrors }) => {
   // Home: the rendered cards are the API's products, with the API's names and prices.
   const listed = page.waitForResponse(isProductList);
   await open(page, project.baseURL);
@@ -149,7 +149,7 @@ test('developer-platform.headless-api.catalog::starter-renders-live-catalog — 
   expect(consoleErrors, consoleErrors.join('\n')).toEqual([]);
 });
 
-test('developer-platform.headless-api.cart::starter-cart-behaviour — lines are created, merged and removed through the cart API and persist only in their own session', async ({ page, project, browser }) => {
+test('developer-platform.headless-api.cart::starter-cart-behaviour — lines are created, merged and removed through the cart API and persist only in their own session @release', async ({ page, project, browser }) => {
   const [first, second] = await twoBuyableProducts();
 
   // First add creates the cart (token returned once), then adds the line.
